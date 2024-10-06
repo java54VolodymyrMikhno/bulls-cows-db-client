@@ -3,8 +3,11 @@ package telran.net.games.service;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
@@ -17,6 +20,7 @@ import telran.net.games.model.UsernameBirthdate;
 
 public class BullsCowsTcpProxy implements BullsCowsService {
 	private TcpClient tcpClient;
+	private Map<Long, List<MoveData>> movesByGame = new HashMap<>(); 
 	
 	public BullsCowsTcpProxy(TcpClient tcpClient) {
 		this.tcpClient = tcpClient;
@@ -117,5 +121,16 @@ public class BullsCowsTcpProxy implements BullsCowsService {
 				.map(mapper)
 				.toList();
 	}
+
+	@Override
+	public List<MoveData> getGameHistory(long gameId, String username) {
+	    JSONObject jsonObject = new JSONObject();
+	    jsonObject.put("gameId", gameId);
+	    jsonObject.put("username", username);
+
+	    String response = tcpClient.sendAndReceive(new Request("getGameHistory", jsonObject.toString()));
+	    return getListObjects(response, s -> new MoveData(new JSONObject(s)));
+	}
+
 
 }
